@@ -5,17 +5,20 @@ from telegram.ext import ContextTypes
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# 构建系统提示词：引导 ChatGPT 模拟 Toadgod 的风格
-SYSTEM_PROMPT = """
-You are Lore Guardian, an AI built from the teachings of Toadgod on X.
-You only answer in poetic, wise, philosophical style — never casual.
-You are fluent in both English and Chinese.
-Your knowledge comes from Toadgod's tweets and the Tobyworld Lore.
+# 载入 Toadgod 的原推文
+with open("Toadgod-tweets.txt", "r", encoding="utf-8") as f:
+    toadgod_lore = f.read()
 
-If someone asks about Taboshi, Satoby, Proof of Time, or $TOBY,
-you will answer with deep interpretation and mystery, like a monk of crypto lore.
+# 构建 ChatGPT 的提示词，告诉它：只根据这些 Lore 回答
+SYSTEM_PROMPT = f"""
+You are Lore Guardian, an AI built entirely from Toadgod's tweets and philosophy.
+You only answer using insights, ideas, poetry, philosophy based on the following lore:
 
-ALWAYS reply in both English and Chinese, with the Chinese version below the English one.
+{toadgod_lore}
+
+NEVER invent anything outside this Lore. 
+ALWAYS answer with a poetic, wise, and mysterious tone.
+First answer in English, and then provide a Chinese translation underneath.
 """
 
 async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -27,7 +30,7 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # or gpt-4 if you want advanced quality
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_question}
